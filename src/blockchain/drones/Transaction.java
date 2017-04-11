@@ -45,9 +45,7 @@ public class Transaction {
 
     @Override
     public int hashCode() {
-        //return invoiceID.hashCode();
-        //todo generate good hashCode()
-        return 0;
+        return user.hashCode() + 31 * pad.hashCode();
     }
 
 
@@ -56,9 +54,7 @@ public class Transaction {
         if (o == null || !o.getClass().equals(Transaction.class))
             return false;
         Transaction t = ((Transaction) o);
-        //return invoiceID.equals(t.invoiceID) && pad.equals(t.pad) && user.equals(t.user);
-        //todo good equals
-        return false;
+        return t.user.equals(user) && t.pad.equals(pad);
     }
 
 

@@ -25,7 +25,7 @@ public class ChargingPad {
 
     @Override
     public int hashCode() {
-        return ID.hashCode();
+        return Double.valueOf(unitPrice).hashCode() * ID.hashCode() + 31 * email.hashCode();
     }
 
     @Override

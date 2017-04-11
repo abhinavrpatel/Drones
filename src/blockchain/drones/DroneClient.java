@@ -29,6 +29,6 @@ public class DroneClient {
 
     @Override
     public int hashCode() {
-        return ID.hashCode();
+        return ID.hashCode() + 31 * email.hashCode();
     }
 }
