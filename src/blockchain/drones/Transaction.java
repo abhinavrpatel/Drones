@@ -13,19 +13,23 @@ import java.net.URL;
 
 
 public class Transaction {
-    private final DroneClient user;
-    private final ChargingPad pad;
-
-    private double powerExpected;
-
-    //private static final String API_ENDPOINT = "https://svcs.sandbox.paypal.com/Invoice/";
     private static final String API_ENDPOINT = "https://api.sandbox.paypal.com";
 
     private static final String ACTION_CREATE = "/v1/invoicing/invoices"; // type = POST
     private static final String ACTION_SEND = "/v1/invoicing/invoices/%s/send";
     private static final String ACTION_FETCH = "/v1/invoicing/invoices/%s";
 
+    private static final long SLEEP_TIME = 1000L * 120; // 1000 millis = 1 second
+
+    private final DroneClient user;
+    private final ChargingPad pad;
+
+    private double powerExpected;
+
+
+
     private String invoiceID;
+
 
 
     /**
@@ -42,8 +46,6 @@ public class Transaction {
         this.pad = pad;
         this.powerExpected = powerExpected;
     }
-
-    //TODO: this is the code that is handling the calls to PayPal
 
 
 
@@ -93,14 +95,15 @@ public class Transaction {
         if (invoiceID != null) {
             if(sendInvoice(invoiceID)) {
                 System.out.println("after sendinvoice, value was true");
-//                try {
-//                    waitUntilPaid(invoiceID);
-//                } catch (DroneException e) {
-//                    // they cancelled the invoice and then the transaction
-//                    // TODO: handle this case
-//                    e.printStackTrace();
-//                    return false;
-//                }
+                try {
+                    waitUntilPaid(invoiceID);
+                    System.out.println("\nINVOICE PAID");
+                } catch (DroneException e) {
+                    // they cancelled the invoice and then the transaction
+                    // TODO: handle this case
+                    e.printStackTrace();
+                    return false;
+                }
             }
 
         }
@@ -121,8 +124,7 @@ public class Transaction {
         try {
             String address = API_ENDPOINT + ACTION_CREATE;
             final JSONObject createPayload = buildCreatePayload();
-            //System.out.println(createPayload.toString(3));
-            //System.out.println(createPayload.toString());
+//            System.out.println(createPayload.toString(3));
             URL object = new URL(address);
 
             HttpURLConnection con = (HttpURLConnection) object.openConnection();
@@ -132,11 +134,10 @@ public class Transaction {
             con.setDoOutput(true);
             con.setDoInput(true);
             con.setUseCaches(false);
-            //con.connect();
 
 
             OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
-            //wr.write(createPayload.toString());
+//            wr.write(createPayload.toString());
             createPayload.write(wr);
 //            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
 //            wr.write(createPayload.toString().getBytes("utf-8"));
@@ -220,12 +221,12 @@ public class Transaction {
      * @throws DroneException if the invoice was cancelled by the client
      */
     private void waitUntilPaid(String invoice) throws DroneException {
-        long sleepTime = 1000L * 60; //millis, 1000 millis is one second
         do {
             try {
-                Thread.sleep(sleepTime);
-                System.out.println("Sleeping now for length: " + sleepTime);
+                System.out.println("Sleeping now for length: " + Transaction.SLEEP_TIME);
+                Thread.sleep(Transaction.SLEEP_TIME);
             } catch (InterruptedException e) {
+                System.out.println("ERROR WHILE SLEEPING------");
                 e.printStackTrace();
                 System.exit(1);
             }
@@ -255,6 +256,8 @@ public class Transaction {
             connection.setRequestMethod("GET");
 
             int responseCode = connection.getResponseCode();
+            System.out.println("response code for isInvoicePaid: " + responseCode);
+            System.out.println("response message for isInvoicePaid: " + connection.getResponseMessage());
 
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 JSONObject response = extractJSON(connection.getInputStream());
@@ -267,6 +270,7 @@ public class Transaction {
                     case "UNPAID":
                         return false;
                     default:
+                        System.out.println("ERROR DURING CHECK FOR INVOICE STATUS, status: " + status);
                         throw new DroneException(status);
                 }
             } else {
