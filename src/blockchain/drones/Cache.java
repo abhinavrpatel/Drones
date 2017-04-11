@@ -24,10 +24,12 @@ class Cache extends Hashtable<String, Transaction> {
     }
 
     public static boolean contains(Transaction t) {
-        return true;
+        return ourInstance.get(t.getPad().getID()).equals(t);
     }
 
     public static boolean remove(Transaction t)  {
-        return false;
+        synchronized (ourInstance) {
+            return ourInstance.remove(t.getPad().getID(), t);
+        }
     }
 }
