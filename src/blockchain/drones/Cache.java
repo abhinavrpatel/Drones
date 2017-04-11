@@ -1,11 +1,8 @@
 package blockchain.drones;
 
-import java.util.Hashtable;
+import java.util.concurrent.ConcurrentHashMap;
 
-//TODO: figure out how to effectively use HashTable for ChargingPad, DroneClient, Transaction
-
-// store objects in DB using hibernate (??)
-class Cache extends Hashtable<String, Transaction> {
+class Cache extends ConcurrentHashMap<String, Transaction> {
 
     private Cache() {
         super();
@@ -13,14 +10,8 @@ class Cache extends Hashtable<String, Transaction> {
 
     private static volatile Cache ourInstance = new Cache();
 
-    public static Cache getInstance() {
-        return ourInstance;
-    }
-
     public static void add(Transaction t) {
-        synchronized(ourInstance) {
-            ourInstance.put(t.getPad().getID(), t);
-        }
+        ourInstance.put(t.getPad().getID(), t);
     }
 
     public static boolean contains(Transaction t) {
@@ -28,8 +19,6 @@ class Cache extends Hashtable<String, Transaction> {
     }
 
     public static boolean remove(Transaction t)  {
-        synchronized (ourInstance) {
-            return ourInstance.remove(t.getPad().getID(), t);
-        }
+        return ourInstance.remove(t.getPad().getID(), t);
     }
 }
