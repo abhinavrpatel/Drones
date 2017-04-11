@@ -8,8 +8,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-// todo: time stamp, allow cancel in middle of charging
-
 // Design questions: - How do we want to store userID and padID in our DB (as int, string?)
 //                   - MESSAGING (contacting exactly the right pad, and extracting data)
 
@@ -56,7 +54,6 @@ public class ClientServlet extends HttpServlet {
 
 
     @Override
-    @SuppressWarnings("all")
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String userID = request.getParameter(ARG_USER);
         String padID = request.getParameter(ARG_PAD);
