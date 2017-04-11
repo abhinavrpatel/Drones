@@ -8,24 +8,57 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * TODO: how expensive is it to read/write/construct java objects from database?
- *
- * -- if it isnt expensive, I will just store DroneClient and ChargingPad directly in DB, and load
+ * Servlet that handles requests from the charging pad. Unless a pad is in
+ * an active transaction, it is on a poll loop. It will continually send
+ * GET requests every period of time, to check for an active pending
+ * transaction. If the result of the GET request is that there is an active
+ * transaction ready to be serviced, the charging pad charges the drone.
+ * After charging, the pad will send POST to indicate that the charging
+ * has been completed, which is when the server will clear that corresponding
+ * transaction of the list of active transactions.
  */
 @WebServlet(name = "DeviceServlet")
 public class DeviceServlet extends HttpServlet {
     private static final String ARG_USER = "user";
     private static final String ARG_PAD = "pad";
-    private static final String ARG_CONSUMED = "consumed";
+    private static final String ARG_EXPECTED = "expected";
 
+
+    /**
+     * Handles the POST request sent to this server by the charging pad. If the
+     * correct parameters are given, then the transaction is cleared from the list
+     * of active transactions and completed. If cleared successfully, then HTTP "OK"
+     * code (200) is written back to the user. Else, HTTP "bad request" code (400)
+     * is written back.
+     *
+     * @param request -  must contain user (the user id), pad (the charging pad's id),
+     *                   and expected (the amount of power that the client purchased).
+     * @param response - returns either status code 200 or 400
+     * @throws ServletException
+     * @throws IOException
+     */
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String userID = request.getParameter(ARG_USER);
         String padID = request.getParameter(ARG_PAD);
-        String powerConsumed = request.getParameter(ARG_CONSUMED);
+        String powerExpected = request.getParameter(ARG_EXPECTED);
 
     }
 
+
+    /**
+     * Handles the GET requests sent to this servlet by the polling charging pads.
+     * The server performs lookups to see if there is an active transaction. If it
+     * does not find one, it returns a JSON object with field 'has_transaction' set to
+     * 'FALSE'. Else, it returns a JSON object with field 'has_transaction' set to
+     * 'TRUE', 'expected_power' set to the correct expected power, 'pad' set to the
+     * pad ID of the sender, and 'user' set to the user ID of the client.
+     *
+     * @param request - must contain pad (the ID of the charging pad that is the sender)
+     * @param response - contains JSON with specified parameters
+     * @throws ServletException
+     * @throws IOException
+     */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // this would handle the periodic checkups by charging pads
+        String padID = request.getParameter(ARG_PAD); // use this as key for Cache lookup
     }
 }
