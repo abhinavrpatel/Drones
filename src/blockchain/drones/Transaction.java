@@ -26,12 +26,6 @@ public class Transaction {
 
     private double powerExpected;
 
-
-
-    private String invoiceID;
-
-
-
     /**
      * Builds an empty instance of a transaction between the given user and
      * charging pad. It also constructs a transaction where the user intends
@@ -51,7 +45,9 @@ public class Transaction {
 
     @Override
     public int hashCode() {
-        return invoiceID.hashCode();
+        //return invoiceID.hashCode();
+        //todo generate good hashCode()
+        return 0;
     }
 
 
@@ -60,7 +56,9 @@ public class Transaction {
         if (o == null || !o.getClass().equals(Transaction.class))
             return false;
         Transaction t = ((Transaction) o);
-        return invoiceID.equals(t.invoiceID) && pad.equals(t.pad) && user.equals(t.user);
+        //return invoiceID.equals(t.invoiceID) && pad.equals(t.pad) && user.equals(t.user);
+        //todo good equals
+        return false;
     }
 
 
@@ -90,7 +88,7 @@ public class Transaction {
      * @return whether the payment procedure was successful
      */
     protected boolean begin() {
-        invoiceID = createInvoice();
+        String invoiceID = createInvoice();
         System.out.println("in begin after createInvoice, ID = " + invoiceID);
         if (invoiceID != null) {
             if(sendInvoice(invoiceID)) {
