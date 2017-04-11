@@ -40,8 +40,26 @@ public class DeviceServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String userID = request.getParameter(ARG_USER);
         String padID = request.getParameter(ARG_PAD);
-        String powerExpected = request.getParameter(ARG_EXPECTED);
+        double power;
+        try {
+            power = Double.valueOf(request.getParameter(ARG_EXPECTED));
+        } catch (NumberFormatException | NullPointerException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid parameters given");
+            return;
+        }
 
+
+        if (userID == null || padID == null || userID.equals("") || padID.equals("") || power <= 0) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid parameters given");
+            return;
+        }
+
+        DroneClient drone = DroneDB.loadDroneClient(userID);
+        ChargingPad pad = DroneDB.loadChargingPad(padID);
+        Transaction transaction = new Transaction(drone, pad, power);
+        transaction.complete();
     }
 
 
