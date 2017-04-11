@@ -43,6 +43,8 @@ public class Transaction {
         this.powerExpected = powerExpected;
     }
 
+    //TODO: this is the code that is handling the calls to PayPal
+
 
 
     @Override
@@ -87,16 +89,18 @@ public class Transaction {
      */
     protected boolean begin() {
         invoiceID = createInvoice();
+        System.out.println("in begin after createInvoice, ID = " + invoiceID);
         if (invoiceID != null) {
             if(sendInvoice(invoiceID)) {
-                try {
-                    waitUntilPaid(invoiceID);
-                } catch (DroneException e) {
-                    // they cancelled the invoice and then the transaction
-                    // TODO: handle this case
-                    e.printStackTrace();
-                    return false;
-                }
+                System.out.println("after sendinvoice, value was true");
+//                try {
+//                    waitUntilPaid(invoiceID);
+//                } catch (DroneException e) {
+//                    // they cancelled the invoice and then the transaction
+//                    // TODO: handle this case
+//                    e.printStackTrace();
+//                    return false;
+//                }
             }
 
         }
@@ -112,31 +116,42 @@ public class Transaction {
      *
      * @return the invoice ID if it was successfully created, else null
      */
+
     private String createInvoice() {
         try {
             String address = API_ENDPOINT + ACTION_CREATE;
             final JSONObject createPayload = buildCreatePayload();
-
+            //System.out.println(createPayload.toString(3));
+            //System.out.println(createPayload.toString());
             URL object = new URL(address);
 
             HttpURLConnection con = (HttpURLConnection) object.openConnection();
+            con.setRequestProperty("Content-Type", "application/json");
+            con.setRequestProperty("Authorization", " Bearer " + API.getAccessToken());
+            con.setRequestMethod("POST");
             con.setDoOutput(true);
             con.setDoInput(true);
-            con.setRequestProperty("Content-Type", "application/json");
-            con.setRequestProperty("Authorization", "Bearer " + API.getAccessToken());
-            con.setRequestMethod("POST");
+            con.setUseCaches(false);
+            //con.connect();
 
-            //OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
-            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-            wr.write(createPayload.toString().getBytes("utf-8"));
+
+            OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
+            //wr.write(createPayload.toString());
+            createPayload.write(wr);
+//            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+//            wr.write(createPayload.toString().getBytes("utf-8"));
             wr.flush();
+            wr.close();
 
             int responseCode = con.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
+            if (responseCode == HttpURLConnection.HTTP_CREATED) {
                 JSONObject createResponse = extractJSON(con.getInputStream());
-                return createResponse.getString("id");
+                String id = createResponse.getString("id");
+                System.out.println(id);
+                return id;
             } else {
-                System.err.println(con.getResponseMessage());
+                System.out.println(con.getResponseMessage());
+                System.out.println(responseCode);
                 System.exit(1);
             }
         } catch (MalformedURLException e) {
@@ -170,13 +185,16 @@ public class Transaction {
     private static boolean sendInvoice(String id) {
         try {
             String address = String.format(API_ENDPOINT + ACTION_SEND, id);
+            System.out.println("address in sendInvoice: " + address);
             URL object = new URL(address);
             HttpURLConnection con = (HttpURLConnection) object.openConnection();
-            con.setDoOutput(true);
-            con.setDoInput(true);
             con.setRequestProperty("Content-Type", "application/json");
             con.setRequestProperty("Authorization", "Bearer " + API.getAccessToken());
             con.setRequestMethod("POST");
+            con.setDoOutput(true);
+            con.setDoInput(true);
+
+            System.out.println("Status of send invoice: " + con.getResponseCode());
             return true;
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -271,7 +289,6 @@ public class Transaction {
 
 
     protected boolean complete() {
-
         return true;
     }
 
@@ -309,7 +326,8 @@ public class Transaction {
         try {
             JSONObject result = new JSONObject();
             JSONObject merchantInfo = buildMerchantInfo(new JSONObject());
-            JSONObject billingInfo = new JSONObject().put("email", user.getEmail());
+            JSONArray billingInfo = new JSONArray()
+                    .put(new JSONObject().put("email", user.getEmail()));
             JSONArray items = buildCreateItems(new JSONArray());
             result.put("merchant_info", merchantInfo);
             result.put("billing_info", billingInfo);
@@ -337,12 +355,20 @@ public class Transaction {
                 .put("country_code", "001")
                 .put("national_number", "4085551234");
 
+        JSONObject address = new JSONObject()
+                .put("line1", "2650 Durant Ave.")
+                .put("city", "Berkeley")
+                .put("state","CA")
+                .put("postal_code", "94720")
+                .put("country_code", "US");
+
+
         json.put("email", pad.getEmail())
                 .put("first_name", "Abhinav")
                 .put("last_name", "Patel")
-                .put("business_name", "Blockchain at Berkeley's Drones Project")
-                .put("phone", new JSONObject().put("country_code", "001")
-                .put("phone", phone));
+                .put("business_name", "Blockchain at Berkeleys Drones Project")
+                .put("phone", phone)
+                .put("address", address);
         return json;
     }
 
@@ -364,7 +390,7 @@ public class Transaction {
         item.put("name", "Power for Drone")
                 .put("quantity", powerExpected)
                 .put("unit_price", price);
-        return json;
+        return json.put(item);
     }
 
 }

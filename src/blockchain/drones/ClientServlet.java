@@ -34,7 +34,6 @@ public class ClientServlet extends HttpServlet {
             // TODO: write okay back to response
         } else {
             // TODO: return error complaint
-            response.getHeader("");
         }
     }
 
