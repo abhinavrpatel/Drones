@@ -48,7 +48,7 @@ public class ClientServlet extends HttpServlet {
             Cache.add(transaction);
             response.setStatus(HttpServletResponse.SC_CREATED);
         } else {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "We were unable to create your transaction");
         }
     }
