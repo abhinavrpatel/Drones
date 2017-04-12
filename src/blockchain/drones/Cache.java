@@ -22,7 +22,7 @@ class Cache extends ConcurrentHashMap<String, Transaction> {
 
     public static boolean removeActive(Transaction t)  {
         if (activeTransactions.remove(t.getPad().getID(), t)) {
-            completedTransactions.addCompleted(t);
+            addCompleted(t);
             return true;
         }
         return false;
