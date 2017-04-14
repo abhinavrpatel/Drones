@@ -27,18 +27,4 @@ class Cache extends ConcurrentHashMap<String, Transaction> {
         }
         return false;
     }
-
-//    public static boolean containsCompleted(Transaction t) {
-//        return completedTransactions.containsKey(t.getPad().getID());
-//    }
-//
-//    public static boolean removeCompleted(Transaction t) {
-//        return t.equals(completedTransactions.remove(t.getPad().getID()));
-//    }
-//
-//    private static void addCompleted(Transaction t) {
-//        synchronized (completedTransactions) {
-//            completedTransactions.put(t.getPad().getID(), t);
-//        }
-//    }
 }
