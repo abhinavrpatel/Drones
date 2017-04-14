@@ -8,35 +8,37 @@ class Cache extends ConcurrentHashMap<String, Transaction> {
         super();
     }
 
-    private static volatile Cache activeTransactions = new Cache();
+    private static final Cache activeTransactions = new Cache();
 
-    private static volatile Cache completedTransactions = new Cache();
+    //private static final HashMap<String, Transaction> completedTransactions = new HashMap<>();
 
     public static void addActive(Transaction t) {
         activeTransactions.put(t.getPad().getID(), t);
     }
 
     public static boolean containsActive(Transaction t) {
-        return activeTransactions.get(t.getPad().getID()).equals(t);
+        return t.equals(activeTransactions.get(t.getPad().getID()));
     }
 
     public static boolean removeActive(Transaction t)  {
         if (activeTransactions.remove(t.getPad().getID(), t)) {
-            addCompleted(t);
+            CompletedCache.addCompleted(t);
             return true;
         }
         return false;
     }
 
-    public static boolean containsCompleted(Transaction t) {
-        return completedTransactions.containsKey(t.getPad().getID());
-    }
-
-    public static boolean removeCompleted(Transaction t) {
-        return completedTransactions.remove(t.getPad().getID(), t);
-    }
-
-    private static void addCompleted(Transaction t) {
-        completedTransactions.put(t.getPad().getID(), t);
-    }
+//    public static boolean containsCompleted(Transaction t) {
+//        return completedTransactions.containsKey(t.getPad().getID());
+//    }
+//
+//    public static boolean removeCompleted(Transaction t) {
+//        return t.equals(completedTransactions.remove(t.getPad().getID()));
+//    }
+//
+//    private static void addCompleted(Transaction t) {
+//        synchronized (completedTransactions) {
+//            completedTransactions.put(t.getPad().getID(), t);
+//        }
+//    }
 }

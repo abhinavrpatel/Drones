@@ -66,7 +66,7 @@ public class ClientServlet extends HttpServlet {
         ChargingPad pad = DroneDB.loadChargingPad(padID);
         Transaction transaction = new Transaction(drone, pad, power);
 
-        if (!Cache.containsActive(transaction) && !Cache.containsCompleted(transaction) && transaction.begin()) {
+        if (!Cache.containsActive(transaction) && !CompletedCache.containsCompleted(transaction) && transaction.begin()) {
             response.setStatus(HttpServletResponse.SC_CREATED);
         } else {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
