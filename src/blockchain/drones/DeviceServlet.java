@@ -45,15 +45,25 @@ public class DeviceServlet extends HttpServlet {
         String userID = request.getParameter(ARG_USER);
         String padID = request.getParameter(ARG_PAD);
         String powerExpected = request.getParameter(ARG_EXPECTED);
-        double power;
+        double power = 0;
 
-        if(Utils.checkParams(powerExpected, userID, padID, response)) {
+        try {
             power = Double.valueOf(powerExpected);
-            DroneClient drone = DroneDB.loadDroneClient(userID);
-            ChargingPad pad = DroneDB.loadChargingPad(padID);
-            Transaction transaction = new Transaction(drone, pad, power);
-            transaction.complete();
+        } catch (NumberFormatException | NullPointerException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid parameters given");
         }
+
+        if (userID == null || padID == null || userID.equals("") || padID.equals("") || power <= 0) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid parameters given");
+        }
+
+        DroneClient drone = DroneDB.loadDroneClient(userID);
+        ChargingPad pad = DroneDB.loadChargingPad(padID);
+        Transaction transaction = new Transaction(drone, pad, power);
+        transaction.complete();
+
     }
 
 
@@ -77,37 +87,46 @@ public class DeviceServlet extends HttpServlet {
         System.out.println("USER: " + userID);
         System.out.println("PAD: " + padID);
         System.out.println("POWER: " + powerExpected);
-        double power;
+        double power = 0;
 
-        if(Utils.checkParams(powerExpected, userID, padID, response)){
+        try {
             power = Double.valueOf(powerExpected);
-            DroneClient drone = DroneDB.loadDroneClient(userID);
-            ChargingPad pad = DroneDB.loadChargingPad(padID);
-            Transaction transaction = new Transaction(drone, pad, power);
-
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            PrintWriter out = response.getWriter();
-            JSONObject jsonStatus = new JSONObject();
-
-            boolean isActive = Cache.containsActive(transaction);
-            try {
-                if(isActive) {
-                    jsonStatus.put("has_transaction", true);
-                    jsonStatus.put("expected_power", power);
-                    jsonStatus.put("pad", padID);
-                    jsonStatus.put("user", userID);
-                } else {
-                    jsonStatus.put("has_transaction", false);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            out.print(jsonStatus);
-            out.flush();
-            out.close();
+        } catch (NumberFormatException | NullPointerException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid parameters given");
         }
 
+        if (userID == null || padID == null || userID.equals("") || padID.equals("") || power <= 0) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid parameters given");
+        }
+
+        power = Double.valueOf(powerExpected);
+        DroneClient drone = DroneDB.loadDroneClient(userID);
+        ChargingPad pad = DroneDB.loadChargingPad(padID);
+        Transaction transaction = new Transaction(drone, pad, power);
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        PrintWriter out = response.getWriter();
+        JSONObject jsonStatus = new JSONObject();
+
+        boolean isActive = Cache.containsActive(transaction);
+        try {
+            if(isActive) {
+                jsonStatus.put("has_transaction", true);
+                jsonStatus.put("expected_power", power);
+                jsonStatus.put("pad", padID);
+                jsonStatus.put("user", userID);
+            } else {
+                jsonStatus.put("has_transaction", false);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        out.print(jsonStatus);
+        out.flush();
+        out.close();
     }
 }
 

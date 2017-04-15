@@ -53,21 +53,32 @@ public class ClientServlet extends HttpServlet {
         String userID = request.getParameter(ARG_USER);
         String padID = request.getParameter(ARG_PAD);
         String powerExpected = request.getParameter(ARG_EXPECTED);
-        double power;
+        double power = 0;
 
-        if (Utils.checkParams(powerExpected, userID, padID, response)) {
+        try {
             power = Double.valueOf(powerExpected);
-            DroneClient drone = DroneDB.loadDroneClient(userID);
-            ChargingPad pad = DroneDB.loadChargingPad(padID);
-            Transaction transaction = new Transaction(drone, pad, power);
-
-            if (!Cache.containsActive(transaction) && !CompletedCache.containsCompleted(transaction) && transaction.begin()) {
-                response.setStatus(HttpServletResponse.SC_CREATED);
-            } else {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "We were unable to create your transaction");
-            }
+        } catch (NumberFormatException | NullPointerException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid parameters given");
         }
+
+        if (userID == null || padID == null || userID.equals("") || padID.equals("") || power <= 0) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid parameters given");
+        }
+
+        power = Double.valueOf(powerExpected);
+        DroneClient drone = DroneDB.loadDroneClient(userID);
+        ChargingPad pad = DroneDB.loadChargingPad(padID);
+        Transaction transaction = new Transaction(drone, pad, power);
+
+        if (!Cache.containsActive(transaction) && !CompletedCache.containsCompleted(transaction) && transaction.begin()) {
+            response.setStatus(HttpServletResponse.SC_CREATED);
+        } else {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "We were unable to create your transaction");
+        }
+
     }
 
 
@@ -90,35 +101,46 @@ public class ClientServlet extends HttpServlet {
         String userID = request.getParameter(ARG_USER);
         String padID = request.getParameter(ARG_PAD);
         String powerExpected = request.getParameter(ARG_EXPECTED);
-        double power;
+        double power = 0;
 
-        if (Utils.checkParams(powerExpected, userID, padID, response)) {
+        try {
             power = Double.valueOf(powerExpected);
-            DroneClient drone = DroneDB.loadDroneClient(userID);
-            ChargingPad pad = DroneDB.loadChargingPad(padID);
-            Transaction transaction = new Transaction(drone, pad, power);
-
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-
-            PrintWriter out = response.getWriter();
-            JSONObject jsonStatus = new JSONObject();
-
-            boolean isCompleted = CompletedCache.containsCompleted(transaction);
-            try {
-                if (isCompleted) {
-                    Cache.removeActive(transaction);
-                    jsonStatus.put("status", STATUS_COMPLETE);
-                } else {
-                    jsonStatus.put("status", STATUS_IN_PROGRESS);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            out.print(jsonStatus);
-            out.flush();
-            out.close();
+        } catch (NumberFormatException | NullPointerException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid parameters given");
         }
+
+        if (userID == null || padID == null || userID.equals("") || padID.equals("") || power <= 0) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid parameters given");
+        }
+
+        power = Double.valueOf(powerExpected);
+        DroneClient drone = DroneDB.loadDroneClient(userID);
+        ChargingPad pad = DroneDB.loadChargingPad(padID);
+        Transaction transaction = new Transaction(drone, pad, power);
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        PrintWriter out = response.getWriter();
+        JSONObject jsonStatus = new JSONObject();
+
+        boolean isCompleted = CompletedCache.containsCompleted(transaction);
+        try {
+            if (isCompleted) {
+                Cache.removeActive(transaction);
+                jsonStatus.put("status", STATUS_COMPLETE);
+            } else {
+                jsonStatus.put("status", STATUS_IN_PROGRESS);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        out.print(jsonStatus);
+        out.flush();
+        out.close();
+
     }
 }
