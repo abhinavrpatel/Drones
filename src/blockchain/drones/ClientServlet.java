@@ -1,5 +1,8 @@
 package blockchain.drones;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -7,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * Servlet that handles requests from the client. When a POST request is
@@ -23,6 +27,9 @@ public class ClientServlet extends HttpServlet {
     private static final String ARG_USER = "user";
     private static final String ARG_PAD = "pad";
     private static final String ARG_EXPECTED = "expected";
+
+    private static final String STATUS_COMPLETE = "COMPLETE";
+    private static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
 
     /**
      * Handles the POST request sent to this server. If the correct parameters
@@ -48,32 +55,20 @@ public class ClientServlet extends HttpServlet {
         String powerExpected = request.getParameter(ARG_EXPECTED);
         double power;
 
-        try {
+        if (Utils.checkParams(powerExpected, userID, padID, response)) {
             power = Double.valueOf(powerExpected);
-        } catch (NumberFormatException | NullPointerException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid parameters given");
-            return;
-        }
+            DroneClient drone = DroneDB.loadDroneClient(userID);
+            ChargingPad pad = DroneDB.loadChargingPad(padID);
+            Transaction transaction = new Transaction(drone, pad, power);
 
-        if (userID == null || padID == null || userID.equals("") || padID.equals("") || power <= 0) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid parameters given");
-            return;
-        }
-
-        DroneClient drone = DroneDB.loadDroneClient(userID);
-        ChargingPad pad = DroneDB.loadChargingPad(padID);
-        Transaction transaction = new Transaction(drone, pad, power);
-
-        if (!Cache.containsActive(transaction) && !CompletedCache.containsCompleted(transaction) && transaction.begin()) {
-            response.setStatus(HttpServletResponse.SC_CREATED);
-        } else {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "We were unable to create your transaction");
+            if (!Cache.containsActive(transaction) && !CompletedCache.containsCompleted(transaction) && transaction.begin()) {
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            } else {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "We were unable to create your transaction");
+            }
         }
     }
-
 
 
 
@@ -94,10 +89,36 @@ public class ClientServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String userID = request.getParameter(ARG_USER);
         String padID = request.getParameter(ARG_PAD);
-        String power = request.getParameter(ARG_EXPECTED);
+        String powerExpected = request.getParameter(ARG_EXPECTED);
+        double power;
 
+        if (Utils.checkParams(powerExpected, userID, padID, response)) {
+            power = Double.valueOf(powerExpected);
+            DroneClient drone = DroneDB.loadDroneClient(userID);
+            ChargingPad pad = DroneDB.loadChargingPad(padID);
+            Transaction transaction = new Transaction(drone, pad, power);
 
-        //boolean completed = Cache.containsCompleted(t)
-        //Cache.removeActive(t)
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+
+            PrintWriter out = response.getWriter();
+            JSONObject jsonStatus = new JSONObject();
+
+            boolean isCompleted = CompletedCache.containsCompleted(transaction);
+            try {
+                if (isCompleted) {
+                    Cache.removeActive(transaction);
+                    jsonStatus.put("status", STATUS_COMPLETE);
+                } else {
+                    jsonStatus.put("status", STATUS_IN_PROGRESS);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            out.print(jsonStatus);
+            out.flush();
+            out.close();
+        }
     }
 }

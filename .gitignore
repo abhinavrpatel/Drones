@@ -8,3 +8,4 @@ Drones.iml
 *.db
 src/blockchain/drones/API.java
 web/index.jsp
+!/src/blockchain/drones/DeviceServlet.java
