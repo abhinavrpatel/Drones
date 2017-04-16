@@ -1,6 +1,6 @@
 
 byte server = []; //to be filled in by server team, IP Address of Server
-char serverName[] = "http://localhost:8080";//to be filled in by server team, address of Server
+char serverName[] = "https://aparikh98.github.io/drone_html/";//to be filled in by server team, address of Server
 char pageName[] = "/device"; //to be filled in by server team, location of files on Server
 const int switchPin = PIN; //to be edited by user
 const int output = 2; //to be edited by user
