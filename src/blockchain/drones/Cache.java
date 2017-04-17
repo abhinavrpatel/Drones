@@ -27,4 +27,12 @@ class Cache extends ConcurrentHashMap<String, Transaction> {
         }
         return false;
     }
+
+    public static boolean containsActive(String padKey) {
+        return activeTransactions.containsKey(padKey);
+    }
+
+    public static Transaction getTransaction(String padKey) {
+        return activeTransactions.get(padKey);
+    }
 }

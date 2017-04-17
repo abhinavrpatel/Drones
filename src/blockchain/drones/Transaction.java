@@ -74,6 +74,8 @@ public class Transaction {
     }
 
 
+    protected double getPowerExpected() {return  this.powerExpected; }
+
 
 
     /**

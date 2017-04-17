@@ -81,43 +81,22 @@ public class DeviceServlet extends HttpServlet {
      * @throws IOException
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String userID = request.getParameter(ARG_USER);
         String padID = request.getParameter(ARG_PAD);
-        String powerExpected = request.getParameter(ARG_EXPECTED);
-        System.out.println("USER: " + userID);
         System.out.println("PAD: " + padID);
-        System.out.println("POWER: " + powerExpected);
-        double power = 0;
-
-        try {
-            power = Double.valueOf(powerExpected);
-        } catch (NumberFormatException | NullPointerException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid parameters given");
-        }
-
-        if (userID == null || padID == null || userID.equals("") || padID.equals("") || power <= 0) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid parameters given");
-        }
-
-        power = Double.valueOf(powerExpected);
-        DroneClient drone = DroneDB.loadDroneClient(userID);
-        ChargingPad pad = DroneDB.loadChargingPad(padID);
-        Transaction transaction = new Transaction(drone, pad, power);
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
         JSONObject jsonStatus = new JSONObject();
 
-        boolean isActive = Cache.containsActive(transaction);
+        boolean isActive = Cache.containsActive(padID);
         try {
             if(isActive) {
+                Transaction t = Cache.getTransaction(padID);
                 jsonStatus.put("has_transaction", true);
-                jsonStatus.put("expected_power", power);
-                jsonStatus.put("pad", padID);
-                jsonStatus.put("user", userID);
+                jsonStatus.put("expected_power", t.getPowerExpected());
+                jsonStatus.put("pad", t.getPad().getID());
+                jsonStatus.put("user", t.getClient().getID());
             } else {
                 jsonStatus.put("has_transaction", false);
             }
