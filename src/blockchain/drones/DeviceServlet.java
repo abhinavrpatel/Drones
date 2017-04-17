@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.Writer;
 
 /**
  * Servlet that handles requests from the charging pad. Unless a pad is in
@@ -86,7 +86,7 @@ public class DeviceServlet extends HttpServlet {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        PrintWriter out = response.getWriter();
+        Writer out = response.getWriter();
         JSONObject jsonStatus = new JSONObject();
 
         boolean isActive = Cache.containsActive(padID);
@@ -100,12 +100,13 @@ public class DeviceServlet extends HttpServlet {
             } else {
                 jsonStatus.put("has_transaction", false);
             }
+            jsonStatus.write(out);
         } catch (JSONException e) {
             e.printStackTrace();
+        } finally {
+            out.flush();
+            out.close();
         }
-        out.print(jsonStatus);
-        out.flush();
-        out.close();
     }
 }
 

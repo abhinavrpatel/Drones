@@ -9,7 +9,7 @@ final class DroneDB {
 
 
     public static ChargingPad loadChargingPad(String id) {
-        return new ChargingPad("1", 3d, "abhinavrpatel-facilitator@gmail.com");
+        return new ChargingPad("2", 3d, "abhinavrpatel-facilitator@gmail.com");
     }
 
 

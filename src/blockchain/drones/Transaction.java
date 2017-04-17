@@ -19,7 +19,7 @@ public class Transaction {
     private static final String ACTION_SEND = "/v1/invoicing/invoices/%s/send";
     private static final String ACTION_FETCH = "/v1/invoicing/invoices/%s";
 
-    private static final long SLEEP_TIME = 1000L * 120; // 1000 millis = 1 second
+    private static final long SLEEP_TIME = 1000L * 15; // 1000 millis = 1 second
 
     private final DroneClient user;
     private final ChargingPad pad;
