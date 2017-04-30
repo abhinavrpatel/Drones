@@ -36,10 +36,10 @@ client (the drone owner) and a merchant (a charging pad owner). The flow of the 
   the next iteration of their poll cycle, and the transaction has been completed.</li>
 </ul>
 <h3>Team:</h3>
-Abhinav Patel <br>
-Ashwinee Panda <br>
-Aakash Parikh <br>
-Eric Kong <br>
+Abhinav Patel (Project Leader, server)<br>
+Eric Kong (server)<br>
+Ashwinee Panda (EE)<br>
+Aakash Parikh (EE)<br>
 </body>
 
 
