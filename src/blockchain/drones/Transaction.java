@@ -19,7 +19,7 @@ public class Transaction {
     private static final String ACTION_SEND = "/v1/invoicing/invoices/%s/send";
     private static final String ACTION_FETCH = "/v1/invoicing/invoices/%s";
 
-    private static final long SLEEP_TIME = 1000L * 120; // 1000 millis = 1 second
+    private static final long SLEEP_TIME = 1000L * 15; // 1000 millis = 1 second
 
     private final DroneClient user;
     private final ChargingPad pad;
@@ -74,6 +74,8 @@ public class Transaction {
     }
 
 
+    protected double getPowerExpected() {return  this.powerExpected; }
+
 
 
     /**
@@ -91,7 +93,9 @@ public class Transaction {
                 System.out.println("after sendinvoice, value was true");
                 try {
                     waitUntilPaid(invoiceID);
+                    Cache.addActive(this);
                     System.out.println("\nINVOICE PAID");
+                    return true;
                 } catch (DroneException e) {
                     // they cancelled the invoice and then the transaction
                     // TODO: handle this case
@@ -145,23 +149,18 @@ public class Transaction {
                 System.out.println(id);
                 return id;
             } else {
+                System.out.println("failed create invoice");
                 System.out.println(con.getResponseMessage());
                 System.out.println(responseCode);
                 System.exit(1);
             }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            System.exit(1);
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-            System.exit(1);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            System.exit(1);
-        } catch (JSONException e) {
+        } catch (MalformedURLException | ProtocolException
+                | UnsupportedEncodingException | JSONException e) {
+            System.out.println("exception in createInvoice");
             e.printStackTrace();
             System.exit(1);
         } catch (IOException e) {
+            System.out.println("IOException in createInvoice");
             e.printStackTrace();
             System.exit(1);
         }
@@ -191,15 +190,13 @@ public class Transaction {
 
             System.out.println("Status of send invoice: " + con.getResponseCode());
             return true;
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            System.exit(1);
-        } catch (ProtocolException e) {
+        } catch (MalformedURLException | ProtocolException e) {
+            System.out.println("exception in sendInvoice");
             e.printStackTrace();
             System.exit(1);
         } catch (IOException e) {
+            System.out.println("IOException in sendInvoice");
             e.printStackTrace();
-            System.exit(1);
         }
         return false;
     }
@@ -285,9 +282,13 @@ public class Transaction {
     }
 
 
-
+    /**
+     * Completes and closes out the current transaction.
+     *
+     * @return whether the transaction was closed
+     */
     protected boolean complete() {
-        return true;
+        return Cache.removeActive(this);
     }
 
 
@@ -298,12 +299,12 @@ public class Transaction {
             BufferedReader br = new BufferedReader(new InputStreamReader(input, "utf-8"));
             StringBuilder sb = new StringBuilder();
             String line;
-            while ((line = br.readLine()) != null) {
+            while ((line = br.readLine()) != null)
                 sb.append(line + "\n");
-            }
             br.close();
             return new JSONObject(sb.toString());
         } catch (JSONException e) {
+            System.out.println("JSON exception during extractJSON");
             e.printStackTrace();
             System.exit(1);
         } catch (IOException e) {
@@ -316,7 +317,7 @@ public class Transaction {
 
 
     /**
-     * Preparse JSON to be sent during the create invoice operation
+     * Prepares JSON to be sent during the create invoice operation
      *
      * @return the prepared JSON
      */
@@ -333,6 +334,7 @@ public class Transaction {
             result.put("note", "this is the invoice for the drones project before transaction. Please pay before we give you power");
             return result;
         } catch (JSONException e) {
+            System.out.println("Exception during JSON preparation");
             e.printStackTrace();
             System.exit(1);
         }
