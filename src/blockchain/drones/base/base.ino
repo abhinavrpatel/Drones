@@ -1,116 +1,86 @@
-#include <Ethernet.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
 
-byte server[] = { 151,101,0,133 }; //to be filled in by server team, IP Address of Server
-char serverName[] = "https://aparikh98.github.io";//to be filled in by server team, address of Server
-char pageName[] = "/drone_html"; //to be filled in by server team, location of files on Server
-int thisPort = 80;
 const int switchPin = 13; //to be edited by user
 const int output = 2; //to be edited by user
-
-EthernetClient client;
-char inString[32]; // string for incoming serial data
-int stringPos = 0; // string index counter
-boolean startRead = false; // is reading?
+const char* ssid = "BC-3688"; //to be edited by user
+const char* password = "bowsterwifi"; //to be edited by user
+const char* host = "http://10.142.147.184:8080";
+const char* padNumber = "2"; //to be edited by user
+char userID;
+int power;
 
 void setup() {
-  // put your setup code here, to run once:
-  pinMode(switchPin, OUTPUT);
-  Ethernet.begin(server);
-  Serial.begin(9600);
+Serial.begin(115200);
+  WiFi.begin(ssid, password);
+ 
+  while (WiFi.status() != WL_CONNECTED) {
+ 
+    delay(1000);
+    Serial.print("Connecting..");
+ 
+  }
+  Serial.println();
 }
 
 void loop() {
-  int power;
   while(true) {
     power = getPower();
     if (power != 0) {
       break;
     }
+    delay(1000);
   }
+  Serial.println(power);
   int time = 60 * 60 * power / output;
+  Serial.println(time);
   digitalWrite(switchPin, HIGH);
   delay(time);
+  Serial.println("completed");
   post();
 }
 
 int getPower() {
-  stringPos = 0;
-  memset( &inString, 0, 32 ); //clear inString memory
-
-  while(true){
-
-    if (client.available()) {
-      Serial.println("available!");
-      char c = client.read();
-
-      if (isdigit(c) ) { //'<' is our begining character
-        startRead = true; //Ready to start reading the part 
-      }else if(startRead){
-
-        if(c != ','){ //'>' is our ending character
-          inString[stringPos] = c;
-          stringPos ++;
-        }else{
-          //got what we need here! We can disconnect now
-          startRead = false;
-          client.stop();
-          client.flush();
-          Serial.println(inString);
-          return (int)inString - 48;
-
-        }
+   if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
+   HTTPClient http;  //Declare an object of class HTTPClient
+   String url = host;
+   url+= "/device";
+   url += "?pad=";
+   url += padNumber;
+   http.begin(url);  //Specify request destination
+   int httpCode = http.GET();                                                                  //Send the request
+    if (httpCode > 0) { //Check the returning code
+      String payload = http.getString();
+      Serial.println();//Get the request response payload
+      Serial.println(payload);
+      http.end(); 
+      if(payload.length() == 25) {
+        return 0;
+      } else {
+        userID = payload.charAt(61);
+        Serial.println(userID);
+        return payload.charAt(28) - 48;
       }
     }
-}
+  }
 }
 
 void post() {
-  int inChar;
-  char outBuf[64];
-
-  if(client.connect(serverName, thisPort) == 1)
-  {
-    // send the header
-    sprintf(outBuf,"POST %s HTTP/1.1",pageName);
-    client.println(outBuf);
-    sprintf(outBuf,"Host: %s",serverName);
-    client.println(outBuf);
-    client.println(F("Connection: close\r\nContent-Type: application/x-www-form-urlencoded"));
-    sprintf(outBuf,"Content-Length: %u\r\n",strlen("true"));
-    client.println(outBuf);
-
-    // send the body (variables)
-    client.print(true);
-  } 
-  else
-  {
-    Serial.println(F("failed"));
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    String url = host;
+    url += "/device";
+    url += "?user=";
+    url += userID;
+    url += "&pad=";
+    url += padNumber;
+    url += "&expected=";
+    url += power;
+    http.begin(url);
+    int httpCode = http.POST("Transaction completed");
+    String payload = http.getString();                                        //Get the response payload
+    Serial.println(httpCode);   //Print HTTP return code
+    Serial.println(payload);    //Print request response payload
+    http.end();
   }
-
-  int connectLoop = 0;
-
-  while(client.connected())
-  {
-    while(client.available())
-    {
-      inChar = client.read();
-      Serial.write(inChar);
-      connectLoop = 0;
-    }
-
-    delay(1);
-    connectLoop++;
-    if(connectLoop > 10000)
-    {
-      Serial.println();
-      Serial.println(F("Timeout"));
-      client.stop();
-    }
-  }
-
-  Serial.println();
-  Serial.println(F("disconnecting."));
-  client.stop();
 }
-
-
