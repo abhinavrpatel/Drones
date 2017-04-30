@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.Writer;
 
 /**
  * Servlet that handles requests from the client. When a POST request is
@@ -30,6 +30,9 @@ public class ClientServlet extends HttpServlet {
 
     private static final String STATUS_COMPLETE = "COMPLETE";
     private static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
+    private static final String STATUS_NONEXISTENT = "NO_TRANSACTION_EXISTS";
+
+    private static final String KEY_STATUS = "status";
 
     /**
      * Handles the POST request sent to this server. If the correct parameters
@@ -78,7 +81,6 @@ public class ClientServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "We were unable to create your transaction");
         }
-
     }
 
 
@@ -123,24 +125,25 @@ public class ClientServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        PrintWriter out = response.getWriter();
+        Writer out = response.getWriter();
         JSONObject jsonStatus = new JSONObject();
 
         boolean isCompleted = CompletedCache.containsCompleted(transaction);
+        boolean isActive = Cache.containsActive(transaction);
         try {
             if (isCompleted) {
                 Cache.removeActive(transaction);
-                jsonStatus.put("status", STATUS_COMPLETE);
+                jsonStatus.put(KEY_STATUS, STATUS_COMPLETE);
+            } else if (isActive) {
+                jsonStatus.put(KEY_STATUS, STATUS_IN_PROGRESS);
             } else {
-                jsonStatus.put("status", STATUS_IN_PROGRESS);
+                jsonStatus.put(KEY_STATUS, STATUS_NONEXISTENT);
             }
+            jsonStatus.write(out);
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        out.print(jsonStatus);
         out.flush();
         out.close();
-
     }
 }
