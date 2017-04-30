@@ -8,17 +8,31 @@ class Cache extends ConcurrentHashMap<String, Transaction> {
         super();
     }
 
-    private static volatile Cache ourInstance = new Cache();
+    private static final Cache activeTransactions = new Cache();
 
-    public static void add(Transaction t) {
-        ourInstance.put(t.getPad().getID(), t);
+    //private static final HashMap<String, Transaction> completedTransactions = new HashMap<>();
+
+    public static void addActive(Transaction t) {
+        activeTransactions.put(t.getPad().getID(), t);
     }
 
-    public static boolean contains(Transaction t) {
-        return ourInstance.get(t.getPad().getID()).equals(t);
+    public static boolean containsActive(Transaction t) {
+        return t.equals(activeTransactions.get(t.getPad().getID()));
     }
 
-    public static boolean remove(Transaction t)  {
-        return ourInstance.remove(t.getPad().getID(), t);
+    public static boolean removeActive(Transaction t)  {
+        if (activeTransactions.remove(t.getPad().getID(), t)) {
+            CompletedCache.addCompleted(t);
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean containsActive(String padKey) {
+        return activeTransactions.containsKey(padKey);
+    }
+
+    public static Transaction getTransaction(String padKey) {
+        return activeTransactions.get(padKey);
     }
 }
