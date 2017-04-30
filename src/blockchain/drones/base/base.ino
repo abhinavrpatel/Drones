@@ -2,6 +2,7 @@
 #include <ESP8266HTTPClient.h>
 
 const int switchPin = 13; //to be edited by user
+const int powerPin = 14; //to be edited by user
 const int output = 2; //to be edited by user
 const char* ssid = "BC-3688"; //to be edited by user
 const char* password = "bowsterwifi"; //to be edited by user
@@ -21,6 +22,9 @@ Serial.begin(115200);
  
   }
   Serial.println();
+  pinMode(switchPin, OUTPUT);
+  pinMode(powerPin, OUTPUT);
+  digitalWrite(powerPin, HIGH);
 }
 
 void loop() {
@@ -37,6 +41,7 @@ void loop() {
   digitalWrite(switchPin, HIGH);
   delay(time);
   Serial.println("completed");
+  digitalWrite(switchPin, LOW);
   post();
 }
 
