@@ -47,6 +47,7 @@ public class DeviceServlet extends HttpServlet {
         String powerExpected = request.getParameter(ARG_EXPECTED);
         double power = 0;
 
+        System.out.println("/device POST FROM pad: " + padID + " |-----ARGS ARE user: " + userID + " expected: " + powerExpected);
         try {
             power = Double.valueOf(powerExpected);
         } catch (NumberFormatException | NullPointerException e) {
@@ -63,7 +64,6 @@ public class DeviceServlet extends HttpServlet {
         ChargingPad pad = DroneDB.loadChargingPad(padID);
         Transaction transaction = new Transaction(drone, pad, power);
         transaction.complete();
-
     }
 
 
@@ -82,7 +82,7 @@ public class DeviceServlet extends HttpServlet {
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String padID = request.getParameter(ARG_PAD);
-        System.out.println("PAD: " + padID);
+        System.out.println("/device GET FROM pad: " + padID);
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
