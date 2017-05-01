@@ -35,11 +35,13 @@ client (the drone owner) and a merchant (a charging pad owner). The flow of the 
   <li>After charging, the pad sends POST to mark the transaction as completed, the client would be notified with
   the next iteration of their poll cycle, and the transaction has been completed.</li>
 </ul>
+
+
 <h3>Team:</h3>
-Abhinav Patel (Project Leader, server side)<br>
-Eric Kong (server side)<br>
-Ashwinee Panda (vendor side)<br>
-Aakash Parikh (vendor side)<br>
+Abhinav Patel (Project Lead, server team): https://www.linkedin.com/in/abhinavrpatel/<br>
+Eric Kong (server team): https://www.linkedin.com/in/ashwineepanda/<br>
+Ashwinee Panda (charging pad team): https://www.linkedin.com/in/erickong98/<br>
+Aakash Parikh (charging pad team): https://www.linkedin.com/in/aakashparikh/<br>
 </body>
 
 
