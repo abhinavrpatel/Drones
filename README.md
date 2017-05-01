@@ -39,8 +39,8 @@ client (the drone owner) and a merchant (a charging pad owner). The flow of the 
 
 <h3>Team:</h3>
 Abhinav Patel (Project Lead, server team): https://www.linkedin.com/in/abhinavrpatel/<br>
-Eric Kong (server team): https://www.linkedin.com/in/ashwineepanda/<br>
-Ashwinee Panda (charging pad team): https://www.linkedin.com/in/erickong98/<br>
+Eric Kong (server team): https://www.linkedin.com/in/erickong98/<br>
+Ashwinee Panda (charging pad team):  https://www.linkedin.com/in/ashwineepanda/<br>
 Aakash Parikh (charging pad team): https://www.linkedin.com/in/aakashparikh/<br>
 </body>
 
