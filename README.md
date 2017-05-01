@@ -13,7 +13,7 @@ with the Research and Development division of Blockchain at Berkeley (https://bl
 
 <h3>Project Overview:</h3>
 <body>The Drones Project contains two main components: a centralized web server, powered by Apache Tomcat,
-and the remote charging pad which contains an Arduino programmed by us to measure and control power output.
+and the remote charging pad which contains an microcontroller with a WiFi chip programmed by us to measure and control power output.
 For POC and POP purposes, we have implemented the core functionality that allows for a transaction between a
 client (the drone owner) and a merchant (a charging pad owner). The flow of the system is as follows:
 <ul>
@@ -36,10 +36,10 @@ client (the drone owner) and a merchant (a charging pad owner). The flow of the 
   the next iteration of their poll cycle, and the transaction has been completed.</li>
 </ul>
 <h3>Team:</h3>
-Abhinav Patel (Project Leader, server)<br>
-Eric Kong (server)<br>
-Ashwinee Panda (EE)<br>
-Aakash Parikh (EE)<br>
+Abhinav Patel (Project Leader, server side)<br>
+Eric Kong (server side)<br>
+Ashwinee Panda (vendor side)<br>
+Aakash Parikh (vendor side)<br>
 </body>
 
 
